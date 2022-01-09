@@ -85,6 +85,7 @@ Any issues are welcome.
 - [x] Add results and visualization in this readme.
 - [x] Add BaiduYun links.
 - [x] Add pretrained model.
+- [ ] Clean code comments.
 - [ ] 添加中文README
 
 ## References
