@@ -46,7 +46,6 @@ def main(**kwargs):
     setproctitle.setproctitle("{0}.{1}@S22".format(model_name, dataset_name))
 
 # ========================== load dataset, adjacent matrix, node embeddings ====================== #
-    # load dataset and adjacent matrix
     if load_pkl:
         t1   = time.time()
         dataloader  = pickle.load(open('output/dataloader_' + dataset_name + '.pkl', 'rb'))
@@ -129,7 +128,7 @@ def main(**kwargs):
             train_loss = []
             train_mape = []
             train_rmse = []
-            dataloader['train_loader'].shuffle()    # traing data shuffle very time when starting a new epoch.
+            dataloader['train_loader'].shuffle()    # traing data shuffle when starting a new epoch.
             for itera, (x, y) in enumerate(dataloader['train_loader'].get_iterator()):
                 trainx          = data_reshaper(x, device)
                 trainy          = data_reshaper(y, device)

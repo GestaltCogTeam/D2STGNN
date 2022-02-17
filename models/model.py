@@ -10,7 +10,7 @@ from models.Decouple.spatial_gate import SpatialGate
 class DecoupleLayer(nn.Module):
     def __init__(self, hidden_dim, fk_dim=256, first=False, **model_args):
         super().__init__()
-        self.spatial_gate   = SpatialGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])     # TODO: 测试Time Gate的hidden
+        self.spatial_gate   = SpatialGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])
         self.spa_layer      = SpaBlock(hidden_dim, fk_dim=fk_dim, **model_args)
         self.tem_layer      = TemBlock(hidden_dim, fk_dim=fk_dim, first=first, **model_args)
 
@@ -61,7 +61,7 @@ class DecoupleST(nn.Module):
         # node embeddings
         self.node_emb_u = nn.Parameter(torch.empty(self._num_nodes, self._node_dim))
         self.node_emb_d = nn.Parameter(torch.empty(self._num_nodes, self._node_dim))
- 
+
         # output layer
         self.out_fc_1   = nn.Linear(self._forecast_dim, self._output_hidden)
         self.out_fc_2   = nn.Linear(self._output_hidden, model_args['gap'])

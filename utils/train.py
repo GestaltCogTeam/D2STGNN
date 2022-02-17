@@ -3,6 +3,12 @@ import numpy as np
 import random
 
 def set_config(seed=0):
+    r"""
+    Set seed.
+
+    seed: int
+        The seed.
+    """
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -11,13 +17,16 @@ def set_config(seed=0):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
 def save_model(model, save_path):
+    r"""
+    save model parameters.
+    """
     torch.save(model.state_dict(), save_path)
 
 def load_model(model, save_path):
+    r"""
+    load model parameters
+    """
     model.load_state_dict(torch.load(save_path))
     return model
 

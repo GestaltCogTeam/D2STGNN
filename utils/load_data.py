@@ -7,17 +7,41 @@ from dataloader import DataLoader
 from utils.cal_adj import *
 
 def re_normalization(x, mean, std):
+    r"""
+    Standard re-normalization
+
+    mean: float
+        Mean of data
+    std: float
+        Standard of data
+    """
     x = x * std + mean
     return x
 
 
 def max_min_normalization(x, _max, _min):
+    r"""
+    Max-min normalization
+
+    _max: float
+        Max
+    _min: float
+        Min
+    """
     x = 1. * (x - _min)/(_max - _min)
     x = x * 2. - 1.
     return x
 
 
 def re_max_min_normalization(x, _max, _min):
+    r"""
+    Max-min re-normalization
+
+    _max: float
+        Max
+    _min: float
+        Min
+    """
     x = (x + 1.) / 2.
     x = 1. * x * (_max - _min) + _min
     return x

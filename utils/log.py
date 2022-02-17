@@ -3,6 +3,9 @@ import os
 import shutil
 
 def clock(func):
+    r"""
+    time counter
+    """
     def clocked(*args, **kw):
         t0 = time.perf_counter()
         result = func(*args, **kw)
