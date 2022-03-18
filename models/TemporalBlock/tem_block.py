@@ -23,8 +23,6 @@ class PositionalEncoding(nn.Module):
 class TemBlock(nn.Module):
     def __init__(self, hidden_dim, num_heads=4, bias=True, fk_dim=256, first=None, **model_args):
         super().__init__()
-        self.batch_size = model_args['batch_size']
-        self.num_nodes  = model_args['num_nodes']
         self.num_feat   = hidden_dim
         self.hidden_dim = hidden_dim
 
