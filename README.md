@@ -1,31 +1,30 @@
-# Decoupled Spatial-Temporal Graph Neural Networks
+# Decoupled Dynamic Spatial-Temporal Graph Neural Network for Traffic Forecasting
 
-Code for our paper: Decoupled Dynamic Spatial-Temporal Graph Neural Network for Traffic Forecasting.
+Code for our VLDB'22 paper: "Decoupled Dynamic Spatial-Temporal Graph Neural Network for Traffic Forecasting".
 
-> We all depend on mobility, and vehicular transportation affects the daily lives of most of us. Thus, the ability to forecast the state of traffic in a road network is important functionality and an important research topic. Traffic data is obtained from sensors deployed in a road network. After analyzing the traffic data, we find an intuitive assumption of the traffic system: the observation value of a sensor is composed of two underlying parts: (i) the traffic signals diffused from other sensors; (ii) the independent traffic signals of the sensor itself. Recent proposals based on spatial-temporal graph neural networks have shown progress at modeling complex temporal and spatial dependencies in traffic data. However, the serial connection of spatial and temporal models adopted in existing proposals disregards the data assumption, and may lead to the accumulation of errors, which, in turn, impacts model performance negatively.
->
-> To improve modeling performance, we propose means of separating the spatial and temporal information in traffic data. Specifically, we propose a novel framework encompassing a unique spatial gate and a residual decomposition mechanism that combine to decouple spatial and temporal information so that this information can be handled subsequently by specialized spatial and temporal modules. The resulting framework, Decoupled Dynamic Spatial-Temporal Graph Neural Network (D 2 STGNN), can capture spatial-temporal dependencies and also features a dynamic graph learning module that targets the learning of the dynamic characteristics of traffic networks. Extensive experiments with four real-world large-scale traffic datasets demonstrate that the framework is capable of advancing the state-of-the-art.
+<img src="figures/D2STGNN.png" alt="D2STGNN" style="zoom:42%;" />
 
-## 1. Run the model and reproduce the result?
+> We all depend on mobility, and vehicular transportation affects the daily lives of most of us. Thus, the ability to forecast the state of traffic in a road network is an important functionality and a challenging task. Traffic data is often obtained from sensors deployed in a road network. Recent proposals on spatial-temporal graph neural networks have achieved great progress at modeling complex spatial-temporal correlations in traffic data, by modeling traffic data as a diffusion process. However, intuitively, traffic data encompasses two different kinds of hidden time series signals, namely the diffusion signals and inherent signals. Unfortunately, nearly all previous works coarsely consider traffic signals entirely as the outcome of the diffusion, while neglecting the inherent signals, which impacts model performance negatively. To improve modeling performance, we propose a novel Decoupled Spatial-Temporal Framework (DSTF) that separates the diffusion and inherent traffic information in a data-driven manner, which encompasses a unique estimation gate and a residual decomposition mechanism. The separated signals can be handled subsequently by the diffusion and inherent modules separately. Further, we propose an instantiation of DSTF, Decoupled Dynamic Spatial-Temporal Graph Neural Network (D2STGNN), that captures spatial-temporal correlations and also features a dynamic graph learning module that targets the learning of the dynamic characteristics of traffic networks. Extensive experiments with four real-world traffic datasets demonstrate that the framework is capable of advancing the state-of-the-art.
 
-### 1.0 Requirements
+## 1. Table of Contents
 
-- numpy==1.20.3
-- pandas==1.3.3
-- PyYAML==6.0
-- scikit_learn==1.0.1
-- scipy==1.7.1
-- setproctitle==1.2.2
-- torch==1.9.1
-- torchinfo==1.5.3
+```text
+configs         ->  training Configs and model configs for each dataset
+dataloader      ->  pytorch dataloader
+datasets        ->  raw data and processed data
+model           ->  model implementation and training pipeline
+output          ->  model checkpoint
+```
 
-Dependency may be installed by the following command:
+## 2. Requirements
 
-``` bash
+```bash
 pip install -r requirements.txt
 ```
 
-### 1.1 Data Preparation
+## 3. Data Preparation
+
+### 3.1 Download Data
 
 For convenience, we package these datasets used in our model in [Google Drive](https://drive.google.com/drive/folders/1H3nl0eRCVl5jszHPesIPoPu1ODhFMSub?usp=sharing) or [BaiduYun](https://pan.baidu.com/s/1iFcKJ8qeCthyEgPEXYJ-rA?pwd=8888).
 
@@ -45,7 +44,7 @@ Alterbatively, the datasets can be found as follows:
 
 - PEMS04 and PEMS08: These datasets were released by ASTGCN[2] and ASTGNN[3]. Data can also be found in its [GitHub repository](https://github.com/guoshnBJTU/ASTGNN/tree/main/data).
 
-### 1.2 Data Process
+### 3.2 Data Process
 
 ```bash
 python datasets/raw_data/$DATASET_NAME/generate_training_data.py
@@ -55,7 +54,7 @@ Replace `$DATASET_NAME` with one of `METR-LA`, `PEMS-BAY`, `PEMS04`, `PEMS08`.
 
 The processed data is placed in `datasets/$DATASET_NAME`.
 
-### 1.3 Training the Model
+## 4. Training the D2STGNN Model
 
 ```bash
 python main.py --dataset=$DATASET_NAME
@@ -63,28 +62,24 @@ python main.py --dataset=$DATASET_NAME
 
 E.g., `python main.py --dataset=METR-LA`.
 
-### 1.4 Load a Pretrained Model
+## 5 Load a Pretrained D2STGNN Model
 
 Check the config files of the dataset in `configs/$DATASET_NAME`, and set the startup args to test mode.
 
 Download the pre-trained model files in [Google Drive](https://drive.google.com/drive/folders/18nkluGajYET2F9mxz3Kl6jcFVAAUGfpc?usp=sharing) or [BaiduYun](https://pan.baidu.com/s/1tGOdVy4uz5TcvAk5FrR4MQ?pwd=8888) into the `output` folder and run the command line in `1.3`.
 
-### 1.5 Results and Visualization
+## 6 Results and Visualization
 
-<!-- <img src="figures/Table3.png" alt="Table3" style="zoom:60.22%;" /><img src="figures/Table4.png" alt="Table4" style="zoom:51%;" /> -->
 <img src="figures/TheTable.png" alt="TheTable" style="zoom:80%;" />
 
 <img src="figures/Visualization.png" alt="Visualization" style="zoom:100%;" />
 
-## 2. More QA?
-
-Any issues are welcome.
-
-## 3. To Do
+## 7. To Do
 
 - [x] Add results and visualization in this readme.
 - [x] Add BaiduYun links.
 - [x] Add pretrained model.
+- [ ] Add reference format.
 - [ ] Clean code comments.
 - [ ] 添加中文README
 

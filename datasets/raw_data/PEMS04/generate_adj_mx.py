@@ -155,7 +155,7 @@ if direction:
     adj_mx, distance_mx = get_adjacency_matrix_2direction(distance_df_filename, num_of_vertices, id_filename=None)
 else:
     adj_mx, distance_mx = get_adjacency_matrix(distance_df_filename, num_of_vertices, id_filename=None)
-# TODO: the self loop is missing
+
 add_self_loop = False
 if add_self_loop:
     adj_mx = adj_mx + np.identity(adj_mx.shape[0])

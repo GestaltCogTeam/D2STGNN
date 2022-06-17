@@ -2,17 +2,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models.SpatialBlock import SpaBlock
-from models.TemporalBlock import TemBlock
+from models.DiffusionBlock import DifBlock
+from models.InherentBlock import InhBlock
 from models.DynamicGraphConv.DyGraphCons import DynamicGraphConstructor
-from models.Decouple.spatial_gate import SpatialGate
+from models.Decouple.estimation_gate import EstimationGate
 
 class DecoupleLayer(nn.Module):
     def __init__(self, hidden_dim, fk_dim=256, first=False, **model_args):
         super().__init__()
-        self.spatial_gate   = SpatialGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])
-        self.spa_layer      = SpaBlock(hidden_dim, fk_dim=fk_dim, **model_args)
-        self.tem_layer      = TemBlock(hidden_dim, fk_dim=fk_dim, first=first, **model_args)
+        self.spatial_gate   = EstimationGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])
+        self.spa_layer      = DifBlock(hidden_dim, fk_dim=fk_dim, **model_args)
+        self.tem_layer      = InhBlock(hidden_dim, fk_dim=fk_dim, first=first, **model_args)
 
     def forward(self, X, dynamic_graph, static_graph, E_u, E_d, T_D, D_W):
         X_spa  = self.spatial_gate(E_u, E_d, T_D, D_W, X)
@@ -20,7 +20,7 @@ class DecoupleLayer(nn.Module):
         tem_backcast_seq_res, tem_forecast_hidden = self.tem_layer(spa_backcast_seq_res)         
         return tem_backcast_seq_res, spa_forecast_hidden, tem_forecast_hidden
 
-class DecoupleST(nn.Module):
+class D2STGNN(nn.Module):
     def __init__(self, **model_args):
         super().__init__()
         # attributes

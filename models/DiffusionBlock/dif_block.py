@@ -1,9 +1,9 @@
 import torch.nn as nn
-from models.SpatialBlock.forecast import Forecast
+from models.DiffusionBlock.forecast import Forecast
 from models.Decouple.residual_decomp import ResidualDecomp
-from models.SpatialBlock.ST_conv import STLocalizedConv
+from models.DiffusionBlock.dif_model import STLocalizedConv
 
-class SpaBlock(nn.Module):
+class DifBlock(nn.Module):
     def __init__(self, hidden_dim, fk_dim=256, use_pre=None, dy_graph=None, sta_graph=None, **model_args):
         super().__init__()
         self.pre_defined_graph  = model_args['adjs']

@@ -11,7 +11,7 @@ from utils.load_data import *
 from utils.log import TrainLogger
 from models.losses import *
 from models import trainer
-from models.model import DecoupleST
+from models.model import D2STGNN
 import yaml
 import setproctitle
 
@@ -93,7 +93,7 @@ def main(**kwargs):
     logger.print_optim_args(optim_args)
 
     # init the model
-    model   = DecoupleST(**model_args).to(device)
+    model   = D2STGNN(**model_args).to(device)
 
     # get a trainer
     engine  = trainer(scaler, model, **optim_args)
