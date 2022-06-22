@@ -1,6 +1,6 @@
 # Decoupled Dynamic Spatial-Temporal Graph Neural Network for Traffic Forecasting
 
-Code for our VLDB'22 paper: "Decoupled Dynamic Spatial-Temporal Graph Neural Network for Traffic Forecasting".
+Code for our VLDB'22 paper: "[Decoupled Dynamic Spatial-Temporal Graph Neural Network for Traffic Forecasting](https://arxiv.org/abs/2206.09112)".
 
 <img src="figures/D2STGNN.png" alt="D2STGNN" style="zoom:42%;" />
 
@@ -62,7 +62,7 @@ python main.py --dataset=$DATASET_NAME
 
 E.g., `python main.py --dataset=METR-LA`.
 
-## 5 Load a Pretrained D2STGNN Model
+## 5 Loading a Pretrained D2STGNN Model
 
 Check the config files of the dataset in `configs/$DATASET_NAME`, and set the startup args to test mode.
 
