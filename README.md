@@ -74,7 +74,13 @@ Download the pre-trained model files in [Google Drive](https://drive.google.com/
 
 <img src="figures/Visualization.png" alt="Visualization" style="zoom:100%;" />
 
-## 7. To Do
+## 7. More Related Works
+
+- [STEP: Pre-training-Enhanced Spatial-Temporal Graph Neural Network For Multivariate Time Series Forecasting. SIGKDD 2022.](https://github.com/zezhishao/STEP)
+
+- [BasicTS: An Open Source Standard Time Series Forecasting Benchmark.](https://github.com/zezhishao/BasicTS)
+
+## 8. To Do
 
 - [x] Add results and visualization in this readme.
 - [x] Add BaiduYun links.
