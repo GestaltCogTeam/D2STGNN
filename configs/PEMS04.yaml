@@ -1,6 +1,7 @@
 ---
 # start up
 start_up:
+  # =================== running mode (select one of the three) ================== #
   # # For test:
   # only_test:    True                                    # if true, or only test
   # resume:       True                                    # if resume
@@ -18,6 +19,7 @@ start_up:
   resume:       False                                     # if resume
   resume_epoch: 0
   resume_best:  False                                     # resume best or resume last
+  # ============================================================================= #
 
   model_name:   D2STGNN                                   # model name
   device:       cuda:0

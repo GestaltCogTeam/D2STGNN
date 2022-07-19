@@ -11,14 +11,30 @@ class DecoupleLayer(nn.Module):
     def __init__(self, hidden_dim, fk_dim=256, first=False, **model_args):
         super().__init__()
         self.spatial_gate   = EstimationGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])
-        self.spa_layer      = DifBlock(hidden_dim, fk_dim=fk_dim, **model_args)
-        self.tem_layer      = InhBlock(hidden_dim, fk_dim=fk_dim, first=first, **model_args)
+        self.dif_layer      = DifBlock(hidden_dim, fk_dim=fk_dim, **model_args)
+        self.inh_layer      = InhBlock(hidden_dim, fk_dim=fk_dim, first=first, **model_args)
 
-    def forward(self, X, dynamic_graph, static_graph, E_u, E_d, T_D, D_W):
+    def forward(self, X: torch.Tensor, dynamic_graph: torch.Tensor, static_graph, E_u, E_d, T_D, D_W):
+        """decouple layer
+
+        Args:
+            X (torch.Tensor): input data with shape (B, L, N, D)
+            dynamic_graph (list of torch.Tensor): dynamic graph adjacency matrix with shape (B, N, k_t * N)
+            static_graph (ist of torch.Tensor): the self-adaptive transition matrix with shape (N, N)
+            E_u (torch.Parameter): node embedding E_u
+            E_d (torch.Parameter): node embedding E_d
+            T_D (torch.Parameter): time embedding T_D
+            D_W (torch.Parameter): time embedding D_W
+
+        Returns:
+            torch.Tensor: the undecoupled signal in this layer, i.e., the X^{l+1}, which should be feeded to the next layer. shape [B, L', N, D].
+            torch.Tensor: the output of the forecast branch of Diffusion Block with shape (B, L'', N, D), where L''=output_seq_len / model_args['gap'] to avoid error accumulation in auto-regression.
+            torch.Tensor: the output of the forecast branch of Inherent Block with shape (B, L'', N, D), where L''=output_seq_len / model_args['gap'] to avoid error accumulation in auto-regression.
+        """
         X_spa  = self.spatial_gate(E_u, E_d, T_D, D_W, X)
-        spa_backcast_seq_res, spa_forecast_hidden = self.spa_layer(X=X, X_spa=X_spa, dynamic_graph=dynamic_graph, static_graph=static_graph)   
-        tem_backcast_seq_res, tem_forecast_hidden = self.tem_layer(spa_backcast_seq_res)         
-        return tem_backcast_seq_res, spa_forecast_hidden, tem_forecast_hidden
+        dif_backcast_seq_res, dif_forecast_hidden = self.dif_layer(X=X, X_spa=X_spa, dynamic_graph=dynamic_graph, static_graph=static_graph)   
+        inh_backcast_seq_res, inh_forecast_hidden = self.inh_layer(dif_backcast_seq_res)         
+        return inh_backcast_seq_res, dif_forecast_hidden, inh_forecast_hidden
 
 class D2STGNN(nn.Module):
     def __init__(self, **model_args):
