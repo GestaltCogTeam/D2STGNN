@@ -38,10 +38,6 @@ def main(**kwargs):
     load_pkl        = config['start_up']['load_pkl']
     model_name      = config['start_up']['model_name']
 
-    only_test       = config['start_up']['only_test']
-    resume          = config['start_up']['resume']
-    resume_best     = config['start_up']['resume_best']
-
     model_name      = config['start_up']['model_name']
     setproctitle.setproctitle("{0}.{1}@S22".format(model_name, dataset_name))
 
@@ -105,21 +101,24 @@ def main(**kwargs):
 
     print("Whole trainining iteration is " + str(len(dataloader['train_loader'])))
 
-    # resume model & load parameters
-    if resume:
-        resume_epoch = config['start_up']['resume_epoch']
-        if resume_best:
-            model = load_model(model, save_path)
-        else:
-            model = load_model(model, save_path_resume)
+    # training init: resume model & load parameters
+    mode = config['start_up']['mode']
+    assert mode in ['test', 'resume', 'scratch']
+    resume_epoch = 0
+    if mode == 'test':
+        model = load_model(model, save_path)        # resume best
     else:
-        resume_epoch = 0
-
+        if mode == 'resume':
+            resume_epoch = config['start_up']['resume_epoch']
+            model = load_model(model, save_path_resume)
+        else:       # scratch
+            resume_epoch = 0
+    
     batch_num   = resume_epoch * len(dataloader['train_loader'])     # batch number (maybe used in schedule sampling)
 
     engine.set_resume_lr_and_cl(resume_epoch, batch_num)
 # =============================================================== Training ================================================================= #
-    if not only_test:
+    if mode != 'test':
         for epoch in range(resume_epoch + 1, optim_args['epochs']):
             # train a epoch
             time_train_start    = time.time()

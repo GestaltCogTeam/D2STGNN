@@ -10,7 +10,7 @@ from models.Decouple.estimation_gate import EstimationGate
 class DecoupleLayer(nn.Module):
     def __init__(self, hidden_dim, fk_dim=256, first=False, **model_args):
         super().__init__()
-        self.spatial_gate   = EstimationGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])
+        self.estimation_gate= EstimationGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])
         self.dif_layer      = DifBlock(hidden_dim, fk_dim=fk_dim, **model_args)
         self.inh_layer      = InhBlock(hidden_dim, fk_dim=fk_dim, first=first, **model_args)
 
@@ -31,7 +31,7 @@ class DecoupleLayer(nn.Module):
             torch.Tensor: the output of the forecast branch of Diffusion Block with shape (B, L'', N, D), where L''=output_seq_len / model_args['gap'] to avoid error accumulation in auto-regression.
             torch.Tensor: the output of the forecast branch of Inherent Block with shape (B, L'', N, D), where L''=output_seq_len / model_args['gap'] to avoid error accumulation in auto-regression.
         """
-        X_spa  = self.spatial_gate(E_u, E_d, T_D, D_W, X)
+        X_spa  = self.estimation_gate(E_u, E_d, T_D, D_W, X)
         dif_backcast_seq_res, dif_forecast_hidden = self.dif_layer(X=X, X_spa=X_spa, dynamic_graph=dynamic_graph, static_graph=static_graph)   
         inh_backcast_seq_res, inh_forecast_hidden = self.inh_layer(dif_backcast_seq_res)         
         return inh_backcast_seq_res, dif_forecast_hidden, inh_forecast_hidden

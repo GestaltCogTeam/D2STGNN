@@ -2,25 +2,9 @@
 # start up
 start_up:
   # =================== running mode (select one of the three) ================== #
-  # # For test:
-  # only_test:    True                                    # if true, or only test
-  # resume:       True                                    # if resume
-  # resume_epoch: 0
-  # resume_best:  True                                    # resume best or resume last
-  
-  # # For resume
-  # only_test:    False
-  # resume:       True
-  # resume_epoch: X
-  # resume_best:  False
-  
-  # Training from scratch
-  only_test:    False                                     # if true, or only test
-  resume:       False                                     # if resume
-  resume_epoch: 0
-  resume_best:  False                                     # resume best or resume last
-  # ============================================================================= #
-  
+  mode: scratch     # three mode: test, resume, scratch
+  resume_epoch: 0   # default to zero, if use the 'resume' mode, users need to set the epoch to resume.
+
   model_name:   D2STGNN                                   # model name
   device:       cuda:0
   load_pkl:     False                                     # load serialized dataloader
