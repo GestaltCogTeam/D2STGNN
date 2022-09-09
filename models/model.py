@@ -2,37 +2,39 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models.DiffusionBlock import DifBlock
-from models.InherentBlock import InhBlock
-from models.DynamicGraphConv.DyGraphCons import DynamicGraphConstructor
-from models.Decouple.estimation_gate import EstimationGate
+from .diffusion_block import DifBlock
+from .inherent_block import InhBlock
+from .dynamic_graph_conv import DynamicGraphConstructor
+from .decouple.estimation_gate import EstimationGate
+
 
 class DecoupleLayer(nn.Module):
-    def __init__(self, hidden_dim, fk_dim=256, first=False, **model_args):
+    def __init__(self, hidden_dim, fk_dim=256, **model_args):
         super().__init__()
-        self.estimation_gate= EstimationGate(model_args['node_hidden'], model_args['time_emb_dim'], 64, model_args['seq_length'])
-        self.dif_layer      = DifBlock(hidden_dim, fk_dim=fk_dim, **model_args)
-        self.inh_layer      = InhBlock(hidden_dim, fk_dim=fk_dim, first=first, **model_args)
+        self.estimation_gate= EstimationGate(node_emb_dim=model_args['node_hidden'], time_emb_dim=model_args['time_emb_dim'], hidden_dim=64)
+        self.dif_layer      = DifBlock(hidden_dim, forecast_hidden_dim=fk_dim, **model_args)
+        self.inh_layer      = InhBlock(hidden_dim, forecast_hidden_dim=fk_dim, **model_args)
 
-    def forward(self, X: torch.Tensor, dynamic_graph: torch.Tensor, static_graph, E_u, E_d, T_D, D_W):
+    def forward(self, history_data: torch.Tensor, dynamic_graph: torch.Tensor, static_graph, node_embedding_u, node_embedding_d, time_in_day_feat, day_in_week_feat):
         """decouple layer
 
         Args:
-            X (torch.Tensor): input data with shape (B, L, N, D)
+            history_data (torch.Tensor): input data with shape (B, L, N, D)
             dynamic_graph (list of torch.Tensor): dynamic graph adjacency matrix with shape (B, N, k_t * N)
             static_graph (ist of torch.Tensor): the self-adaptive transition matrix with shape (N, N)
-            E_u (torch.Parameter): node embedding E_u
-            E_d (torch.Parameter): node embedding E_d
-            T_D (torch.Parameter): time embedding T_D
-            D_W (torch.Parameter): time embedding D_W
+            node_embedding_u (torch.Parameter): node embedding E_u
+            node_embedding_d (torch.Parameter): node embedding E_d
+            time_in_day_feat (torch.Parameter): time embedding T_D
+            day_in_week_feat (torch.Parameter): time embedding T_W
 
         Returns:
-            torch.Tensor: the undecoupled signal in this layer, i.e., the X^{l+1}, which should be feeded to the next layer. shape [B, L', N, D].
+            torch.Tensor: the un decoupled signal in this layer, i.e., the X^{l+1}, which should be feeded to the next layer. shape [B, L', N, D].
             torch.Tensor: the output of the forecast branch of Diffusion Block with shape (B, L'', N, D), where L''=output_seq_len / model_args['gap'] to avoid error accumulation in auto-regression.
             torch.Tensor: the output of the forecast branch of Inherent Block with shape (B, L'', N, D), where L''=output_seq_len / model_args['gap'] to avoid error accumulation in auto-regression.
         """
-        X_spa  = self.estimation_gate(E_u, E_d, T_D, D_W, X)
-        dif_backcast_seq_res, dif_forecast_hidden = self.dif_layer(X=X, X_spa=X_spa, dynamic_graph=dynamic_graph, static_graph=static_graph)   
+
+        gated_history_data  = self.estimation_gate(node_embedding_u, node_embedding_d, time_in_day_feat, day_in_week_feat, history_data)
+        dif_backcast_seq_res, dif_forecast_hidden = self.dif_layer(history_data=history_data, gated_history_data=gated_history_data, dynamic_graph=dynamic_graph, static_graph=static_graph)   
         inh_backcast_seq_res, inh_forecast_hidden = self.inh_layer(dif_backcast_seq_res)         
         return inh_backcast_seq_res, dif_forecast_hidden, inh_forecast_hidden
 
@@ -66,7 +68,7 @@ class D2STGNN(nn.Module):
         self.D_i_W_emb  = nn.Parameter(torch.empty(7, model_args['time_emb_dim']))
 
         # Decoupled Spatial Temporal Layer
-        self.layers = nn.ModuleList([DecoupleLayer(self._hidden_dim, fk_dim=self._forecast_dim, first=True, **model_args)])
+        self.layers = nn.ModuleList([DecoupleLayer(self._hidden_dim, fk_dim=self._forecast_dim, **model_args)])
         for _ in range(self._num_layers - 1):
             self.layers.append(DecoupleLayer(self._hidden_dim, fk_dim=self._forecast_dim, **model_args))
 
@@ -91,8 +93,8 @@ class D2STGNN(nn.Module):
         nn.init.xavier_uniform_(self.D_i_W_emb)
 
     def _graph_constructor(self, **inputs):
-        E_d = inputs['E_d']
-        E_u = inputs['E_u']
+        E_d = inputs['node_embedding_u']
+        E_u = inputs['node_embedding_d']
         if self._model_args['sta_graph']:
             static_graph = [F.softmax(F.relu(torch.mm(E_d, E_u.T)), dim=1)]
         else:
@@ -103,49 +105,51 @@ class D2STGNN(nn.Module):
             dynamic_graph   = []
         return static_graph, dynamic_graph
 
-    def _prepare_inputs(self, X):
+    def _prepare_inputs(self, history_data):
         num_feat    = self._model_args['num_feat']
         # node embeddings
         node_emb_u  = self.node_emb_u  # [N, d]
         node_emb_d  = self.node_emb_d  # [N, d]
         # time slot embedding
-        T_i_D = self.T_i_D_emb[(X[:, :, :, num_feat] * 288).type(torch.LongTensor)]    # [B, L, N, d]
-        D_i_W = self.D_i_W_emb[(X[:, :, :, num_feat+1]).type(torch.LongTensor)]          # [B, L, N, d]
+        time_in_day_feat = self.T_i_D_emb[(history_data[:, :, :, num_feat] * 288).type(torch.LongTensor)]    # [B, L, N, d]
+        day_in_week_feat = self.D_i_W_emb[(history_data[:, :, :, num_feat+1]).type(torch.LongTensor)]          # [B, L, N, d]
         # traffic signals
-        X = X[:, :, :, :num_feat]
+        history_data = history_data[:, :, :, :num_feat]
 
-        return X, node_emb_u, node_emb_d, T_i_D, D_i_W
+        return history_data, node_emb_u, node_emb_d, time_in_day_feat, day_in_week_feat
 
-    def forward(self, X):
-        r"""
+    def forward(self, history_data):
+        """Feed forward of D2STGNN.
 
         Args:
-            X (Tensor): Input data with shape: [B, L, N, C]
-        Returns:
+            history_data (Tensor): history data with shape: [B, L, N, C]
 
+        Returns:
+            torch.Tensor: prediction data with shape: [B, N, L]
         """
+
         # ==================== Prepare Input Data ==================== #
-        X, E_u, E_d, T_D, D_W   = self._prepare_inputs(X)
+        history_data, node_embedding_u, node_embedding_d, time_in_day_feat, day_in_week_feat   = self._prepare_inputs(history_data)
 
         # ========================= Construct Graphs ========================== #
-        static_graph, dynamic_graph = self._graph_constructor(E_u=E_u, E_d=E_d, X=X, T_D=T_D, D_W=D_W)
+        static_graph, dynamic_graph = self._graph_constructor(node_embedding_u=node_embedding_u, node_embedding_d=node_embedding_d, history_data=history_data, time_in_day_feat=time_in_day_feat, day_in_week_feat=day_in_week_feat)
 
         # Start embedding layer
-        X   = self.embedding(X)
+        history_data   = self.embedding(history_data)
 
-        spa_forecast_hidden_list = []
-        tem_forecast_hidden_list = []
+        dif_forecast_hidden_list = []
+        inh_forecast_hidden_list = []
 
-        tem_backcast_seq_res = X
-        for index, layer in enumerate(self.layers):
-            tem_backcast_seq_res, spa_forecast_hidden, tem_forecast_hidden = layer(tem_backcast_seq_res, dynamic_graph, static_graph, E_u, E_d, T_D, D_W)
-            spa_forecast_hidden_list.append(spa_forecast_hidden)
-            tem_forecast_hidden_list.append(tem_forecast_hidden)
+        inh_backcast_seq_res = history_data
+        for _, layer in enumerate(self.layers):
+            inh_backcast_seq_res, dif_forecast_hidden, inh_forecast_hidden = layer(inh_backcast_seq_res, dynamic_graph, static_graph, node_embedding_u, node_embedding_d, time_in_day_feat, day_in_week_feat)
+            dif_forecast_hidden_list.append(dif_forecast_hidden)
+            inh_forecast_hidden_list.append(inh_forecast_hidden)
 
         # Output Layer
-        spa_forecast_hidden = sum(spa_forecast_hidden_list)
-        tem_forecast_hidden = sum(tem_forecast_hidden_list)
-        forecast_hidden     = spa_forecast_hidden + tem_forecast_hidden
+        dif_forecast_hidden = sum(dif_forecast_hidden_list)
+        inh_forecast_hidden = sum(inh_forecast_hidden_list)
+        forecast_hidden     = dif_forecast_hidden + inh_forecast_hidden
         
         # regression layer
         forecast    = self.out_fc_2(F.relu(self.out_fc_1(F.relu(forecast_hidden))))

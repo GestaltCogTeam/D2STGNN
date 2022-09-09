@@ -2,7 +2,7 @@
 # start up
 start_up:
   # =================== running mode (select one of the three) ================== #
-  mode: resume      # three mode: test, resume, scratch
+  mode: scratch      # three mode: test, resume, scratch
   resume_epoch: 0   # default to zero, if use the 'resume' mode, users need to set the epoch to resume.
 
   # ============================================================================= #

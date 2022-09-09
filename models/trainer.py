@@ -1,22 +1,13 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-'''
-@File    :   trainer.py
-@Time    :   2021/08/31 16:23:40
-@Author  :   S22 
-@Version :   1.0
-@Contact :   zezhishao@gmail.com
-@Desc    :   Model trainer
-'''
-import numpy as np
-from torchinfo.torchinfo import summary
 
+import numpy as np
 import torch
 import torch.optim as optim
+from torchinfo.torchinfo import summary
 from sklearn.metrics import mean_absolute_error
 
 from utils.train import data_reshaper, save_model
-from models.losses import masked_mae, masked_rmse, masked_mape, metric
+from .losses import masked_mae, masked_rmse, masked_mape, metric
+
 
 def masked_mape_np(y_true, y_pred, null_val=np.nan):
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -29,6 +20,7 @@ def masked_mape_np(y_true, y_pred, null_val=np.nan):
         mape = np.abs(np.divide(np.subtract(y_pred, y_true).astype('float32'), y_true))
         mape = np.nan_to_num(mask * mape)
         return np.mean(mape) * 100
+
 
 class trainer():
     def __init__(self, scaler, model, **optim_args):

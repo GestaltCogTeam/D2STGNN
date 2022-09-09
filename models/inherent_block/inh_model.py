@@ -2,6 +2,7 @@ import torch as th
 import torch.nn as nn
 from torch.nn import MultiheadAttention
 
+
 class RNNLayer(nn.Module):
     def __init__(self, hidden_dim, dropout=None):
         super().__init__()
@@ -21,6 +22,7 @@ class RNNLayer(nn.Module):
         output  = self.dropout(output)
         return output
 
+
 class TransformerLayer(nn.Module):
     def __init__(self, hidden_dim, num_heads=4, dropout=None, bias=True):
         super().__init__()
@@ -28,6 +30,6 @@ class TransformerLayer(nn.Module):
         self.dropout                    = nn.Dropout(dropout)
 
     def forward(self, X, K, V):
-        Z   = self.multi_head_self_attention(X, K, V)[0]
-        Z   = self.dropout(Z)
-        return Z
+        hidden_states_MSA   = self.multi_head_self_attention(X, K, V)[0]
+        hidden_states_MSA   = self.dropout(hidden_states_MSA)
+        return hidden_states_MSA

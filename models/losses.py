@@ -1,5 +1,5 @@
-import numpy as np
 import torch
+import numpy as np
 
 
 def masked_mse(preds, labels, null_val=np.nan):
@@ -15,8 +15,10 @@ def masked_mse(preds, labels, null_val=np.nan):
     loss = torch.where(torch.isnan(loss), torch.zeros_like(loss), loss)
     return torch.mean(loss)
 
+
 def masked_rmse(preds, labels, null_val=np.nan):
     return torch.sqrt(masked_mse(preds=preds, labels=labels, null_val=null_val))
+
 
 def masked_mae_loss(y_pred, y_true):
     mask = (y_true != 0).float()
@@ -26,6 +28,7 @@ def masked_mae_loss(y_pred, y_true):
     # trick for nans: https://discuss.pytorch.org/t/how-to-set-nan-in-tensor-to-0/3918/3
     loss[loss != loss] = 0
     return loss.mean()
+
 
 def masked_mae(preds, labels, null_val=np.nan):
     if np.isnan(null_val):
@@ -40,11 +43,12 @@ def masked_mae(preds, labels, null_val=np.nan):
     loss = torch.where(torch.isnan(loss), torch.zeros_like(loss), loss)
     return torch.mean(loss)
 
+
 def masked_huber(preds, labels, null_val=np.nan):
     crit = torch.nn.SmoothL1Loss()
     # crit = torch.nn.MSELoss()
     return crit(preds, labels)
-    
+
 
 def masked_mape(preds, labels, null_val=np.nan):
     if np.isnan(null_val):

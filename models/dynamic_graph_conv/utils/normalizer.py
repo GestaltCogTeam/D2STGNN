@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
+
 from utils.cal_adj import remove_nan_inf
+
 
 class Normalizer(nn.Module):
     def __init__(self):
@@ -10,8 +12,8 @@ class Normalizer(nn.Module):
         degree  = torch.sum(graph, dim=2)
         degree  = remove_nan_inf(1 / degree)
         degree  = torch.diag_embed(degree)
-        P       = torch.bmm(degree, graph)
-        return P
+        normed_graph = torch.bmm(degree, graph)
+        return normed_graph
 
     def forward(self, adj):
         return [self._norm(_) for _ in adj]

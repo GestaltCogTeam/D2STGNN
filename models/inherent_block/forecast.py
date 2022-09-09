@@ -10,9 +10,7 @@ class Forecast(nn.Module):
         self.forecast_fc    = nn.Linear(hidden_dim, fk_dim)
 
     def forward(self, X, RNN_H, Z, transformer_layer, rnn_layer, pe):
-        [B, L, N, D]    = X.shape
-        [L, B_N,  D]    = RNN_H.shape
-        [L, B_N,  D]    = Z.shape
+        [batch_size, _, num_nodes, num_feat]    = X.shape
 
         predict = [Z[-1, :, :].unsqueeze(0)]
         for _ in range(int(self.output_seq_len / self.model_args['gap'])-1):
@@ -27,7 +25,7 @@ class Forecast(nn.Module):
             predict.append(_Z)
         
         predict = torch.cat(predict, dim=0)
-        predict = predict.reshape(-1, B, N, D)
+        predict = predict.reshape(-1, batch_size, num_nodes, num_feat)
         predict = predict.transpose(0, 1)
         predict = self.forecast_fc(predict)
         return predict
