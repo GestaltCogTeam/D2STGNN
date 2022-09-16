@@ -80,14 +80,28 @@ Download the pre-trained model files in [Google Drive](https://drive.google.com/
 
 - [BasicTS: An Open Source Standard Time Series Forecasting Benchmark.](https://github.com/zezhishao/BasicTS)
 
-## 8. To Do
+## 8. Citing
 
-- [x] Add results and visualization in this readme.
-- [x] Add BaiduYun links.
-- [x] Add pretrained model.
-- [ ] Add reference format.
-- [ ] Clean code comments.
-- [ ] 添加中文README
+If you find this repository useful for your work, please consider citing it as follows:
+
+```bibtex
+@article{DBLP:journals/pvldb/ShaoZWWXCJ22,
+  author    = {Zezhi Shao and
+               Zhao Zhang and
+               Wei Wei and
+               Fei Wang and
+               Yongjun Xu and
+               Xin Cao and
+               Christian S. Jensen},
+  title     = {Decoupled Dynamic Spatial-Temporal Graph Neural Network for Traffic
+               Forecasting},
+  journal   = {Proc. {VLDB} Endow.},
+  volume    = {15},
+  number    = {11},
+  pages     = {2733--2746},
+  year      = {2022}
+}
+```
 
 ## References
 
